@@ -118,24 +118,19 @@ async function startServer() {
     try {
       const { text, coreExplanation } = req.body;
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [{ text: `A vibrant, pop-art style colorful illustration visually representing the concept of the word "${text}", which means "${coreExplanation}". Bright colors, rounded shapes, highly expressive, clean minimalist background.` }]
-        },
+      const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt: `A vibrant, pop-art style colorful illustration visually representing the concept of the word "${text}", which means "${coreExplanation}". Bright colors, rounded shapes, highly expressive, clean minimalist background.`,
         config: {
-          imageConfig: {
-            aspectRatio: '1:1',
-            imageSize: '1K'
-          }
+          numberOfImages: 1,
+          outputMimeType: 'image/jpeg',
+          aspectRatio: '1:1',
         }
       });
 
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          const mimeType = part.inlineData.mimeType || 'image/png';
-          return res.json({ imageUrl: `data:${mimeType};base64,${part.inlineData.data}` });
-        }
+      if (response.generatedImages && response.generatedImages.length > 0) {
+        const base64EncodeString = response.generatedImages[0].image.imageBytes;
+        return res.json({ imageUrl: `data:image/jpeg;base64,${base64EncodeString}` });
       }
       throw new Error('No image found');
     } catch (error) {

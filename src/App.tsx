@@ -41,7 +41,7 @@ export default function App() {
             <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-400 rounded-xl flex items-center justify-center text-white shadow-sm">
               <Sparkles className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">LingoLens</h1>
+            <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">LingoLens AI 语言词典</h1>
           </div>
           
           {activeTab !== 'study' && (
