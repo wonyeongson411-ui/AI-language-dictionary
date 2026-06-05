@@ -19,8 +19,6 @@ export type DefinitionResult = {
   commonMistake: { wrong: string; right: string; reason: string } | null;
   memoryAid: string;
   pronunciationTip: string;
-  imageUrl?: string;
-  isLoadingImage?: boolean;
 };
 
 export type SavedWord = DefinitionResult & {

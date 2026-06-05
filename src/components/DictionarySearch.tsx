@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { LANGUAGES, fetchDefinition, fetchImage, fetchChatResponse } from '../utils';
+import { LANGUAGES, fetchDefinition, fetchChatResponse } from '../utils';
 import { DefinitionResult, SavedWord } from '../types';
 import { AudioButton } from './AudioButton';
 import { Bookmark, BookmarkCheck, Search, Loader2, Sparkles, MessageCircle, Send, AlertTriangle, Lightbulb, BookOpen, Repeat, Layers } from 'lucide-react';
@@ -13,11 +13,12 @@ export function DictionarySearch({
   savedWords: SavedWord[];
 }) {
   const [native, setNative] = useState(LANGUAGES[0]);
-  const [target, setTarget] = useState(LANGUAGES[4]); // Default Spanish
+  const [target, setTarget] = useState(LANGUAGES[3]); // Default Korean
   const [query, setQuery] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<DefinitionResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -32,22 +33,15 @@ export function DictionarySearch({
     
     setIsLoading(true);
     setResult(null);
+    setErrorMessage('');
     setIsChatOpen(false);
     setChatHistory([]);
     try {
       const def = await fetchDefinition(query, native, target);
-      setResult({ ...def, isLoadingImage: true });
-      
-      fetchImage(def.wordInTarget, def.coreExplanation).then((imgRes) => {
-        setResult(prev => prev ? { ...prev, imageUrl: imgRes.imageUrl, isLoadingImage: false } : null);
-      }).catch((e) => {
-        console.error('Image fetch error', e);
-        setResult(prev => prev ? { ...prev, isLoadingImage: false } : null);
-      });
-
+      setResult({ ...def });
     } catch (e) {
       console.error(e);
-      alert('Error fetching definition. Please try again.');
+      setErrorMessage('这个词暂时还没有收录在演示词库中，你可以先试试：설렘、눈치、답답하다、트렌드、분위기。');
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +81,7 @@ export function DictionarySearch({
         <form onSubmit={handleSearch} className="space-y-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 space-y-2">
-              <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">I Speak</label>
+              <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">母语</label>
               <select 
                 className="w-full p-4 rounded-xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 focus:ring-0 outline-none transition-colors text-lg font-medium text-gray-700"
                 value={native}
@@ -97,7 +91,7 @@ export function DictionarySearch({
               </select>
             </div>
             <div className="flex-1 space-y-2">
-              <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">I want to learn</label>
+              <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">学习语言</label>
               <select 
                 className="w-full p-4 rounded-xl bg-gray-50 border-2 border-gray-100 focus:border-pink-500 focus:ring-0 outline-none transition-colors text-lg font-medium text-gray-700"
                 value={target}
@@ -111,7 +105,7 @@ export function DictionarySearch({
           <div className="relative">
             <input 
               type="text" 
-              placeholder="What do you want to say or understand?"
+              placeholder="你想查询什么词？(试试: 설렘, 눈치)"
               value={query}
               onChange={e => setQuery(e.target.value)}
               className="w-full pl-6 pr-16 py-5 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-blue-500 outline-none text-xl transition-all shadow-inner placeholder:text-gray-400"
@@ -124,6 +118,11 @@ export function DictionarySearch({
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
             </button>
           </div>
+          {errorMessage && (
+            <div className="text-red-500 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg font-medium">
+              {errorMessage}
+            </div>
+          )}
         </form>
       </div>
 
@@ -159,7 +158,7 @@ export function DictionarySearch({
                       }}
                       disabled={isSaved}
                       className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${isSaved ? 'bg-green-100 text-green-600' : 'bg-pink-100 text-pink-600 hover:bg-pink-200'}`}
-                      title={isSaved ? "Saved to Notebook" : "Save to Notebook"}
+                      title={isSaved ? "已保存" : "保存到笔记本"}
                     >
                       {isSaved ? <BookmarkCheck className="w-6 h-6" /> : <Bookmark className="w-6 h-6" />}
                     </button>
@@ -168,7 +167,7 @@ export function DictionarySearch({
 
                 <div className="mt-6 flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-bold flex items-center gap-1">
-                    <Sparkles className="w-4 h-4" /> Tone: {result.usageContext.tone}
+                    <Sparkles className="w-4 h-4" /> 语气: {result.usageContext.tone}
                   </span>
                   {result.usageContext.scenarios.map((sc, i) => (
                     <span key={i} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm font-bold">
@@ -179,7 +178,7 @@ export function DictionarySearch({
 
                 {result.pronunciationTip && (
                   <div className="mt-4 text-gray-500 text-sm font-medium bg-gray-50 p-3 rounded-xl">
-                    🗣️ Tip: {result.pronunciationTip}
+                    🗣️ 发音提示: {result.pronunciationTip}
                   </div>
                 )}
               </div>
@@ -187,7 +186,7 @@ export function DictionarySearch({
               {/* Examples Grid */}
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-blue-500" /> Examples in Action
+                  <BookOpen className="w-5 h-5 text-blue-500" /> 例句展示
                 </h3>
                 <div className="grid gap-4">
                   {result.examples.map((ex, i) => (
@@ -213,7 +212,7 @@ export function DictionarySearch({
               {result.collocations && result.collocations.length > 0 && (
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                    <Layers className="w-5 h-5 text-orange-500" /> Common Pairings
+                    <Layers className="w-5 h-5 text-orange-500" /> 常用搭配
                   </h3>
                   <div className="space-y-4">
                     {result.collocations.map((col, i) => (
@@ -234,7 +233,7 @@ export function DictionarySearch({
               {result.synonyms && result.synonyms.length > 0 && (
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                    <Repeat className="w-5 h-5 text-purple-500" /> Similar, but different
+                    <Repeat className="w-5 h-5 text-purple-500" /> 相近词区别
                   </h3>
                   <div className="space-y-3">
                     {result.synonyms.map((syn, i) => (
@@ -249,34 +248,13 @@ export function DictionarySearch({
 
             </div>
 
-            {/* Right Col: Image, Cautions, Memory, Chat */}
+            {/* Right Col: Cautions, Memory, Chat */}
             <div className="w-full lg:w-80 shrink-0 space-y-6">
               
-              {/* Image */}
-              <div className="w-full aspect-square bg-gray-50 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center relative border border-gray-100">
-                {result.imageUrl ? (
-                  <motion.img 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    src={result.imageUrl} 
-                    referrerPolicy="no-referrer"
-                    alt={`Illustration`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : result.isLoadingImage ? (
-                  <div className="flex flex-col items-center text-gray-400 space-y-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-pink-400" />
-                    <span className="font-medium">Painting concept...</span>
-                  </div>
-                ) : (
-                  <div className="text-gray-400 font-medium">No image</div>
-                )}
-              </div>
-
               {/* Memory Aid */}
               <div className="bg-gradient-to-br from-pink-50 to-orange-50 p-6 rounded-3xl border border-pink-100">
                 <h3 className="text-pink-800 font-bold mb-2 flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5" /> Memory Hack
+                  <Lightbulb className="w-5 h-5" /> 记忆辅助
                 </h3>
                 <p className="text-pink-900/80 leading-relaxed font-medium">{result.memoryAid}</p>
               </div>
@@ -285,11 +263,11 @@ export function DictionarySearch({
               {result.commonMistake && (
                 <div className="bg-red-50 p-6 rounded-3xl border border-red-100">
                   <h3 className="text-red-800 font-bold mb-3 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5" /> Watch Out!
+                    <AlertTriangle className="w-5 h-5" /> 错用提醒
                   </h3>
                   <div className="space-y-2 text-sm">
-                    <p className="text-red-900"><span className="line-through opacity-70">Say: {result.commonMistake.wrong}</span></p>
-                    <p className="text-green-700 font-bold bg-green-100/50 p-2 rounded-lg">Use: {result.commonMistake.right}</p>
+                    <p className="text-red-900"><span className="line-through opacity-70">不要说: {result.commonMistake.wrong}</span></p>
+                    <p className="text-green-700 font-bold bg-green-100/50 p-2 rounded-lg">建议说: {result.commonMistake.right}</p>
                     <p className="text-red-800/80 mt-2">{result.commonMistake.reason}</p>
                   </div>
                 </div>
@@ -301,15 +279,15 @@ export function DictionarySearch({
                   className="bg-blue-500 p-4 text-white font-bold flex items-center justify-between cursor-pointer"
                   onClick={() => setIsChatOpen(!isChatOpen)}
                 >
-                  <span className="flex items-center gap-2"><MessageCircle className="w-5 h-5" /> Practice Chat</span>
-                  <span className="text-blue-200 text-sm">{isChatOpen ? 'Close' : 'Open'}</span>
+                  <span className="flex items-center gap-2"><MessageCircle className="w-5 h-5" /> AI 聊天练习</span>
+                  <span className="text-blue-200 text-sm">{isChatOpen ? '收起' : '展开'}</span>
                 </div>
                 
                 {isChatOpen && (
                   <div className="flex-1 flex flex-col bg-gray-50 h-full">
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                       <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-gray-700 text-sm border border-gray-100 max-w-[90%]">
-                        Hey! Want to practice using "{result.wordInTarget}"? Ask me anything about it or try making a sentence!
+                        你好！想练习用 "{result.wordInTarget}" 吗？你可以问我它和别的词的区别，或者试着用它造句！
                       </div>
                       {chatHistory.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -336,7 +314,7 @@ export function DictionarySearch({
                         type="text" 
                         value={chatInput}
                         onChange={e => setChatInput(e.target.value)}
-                        placeholder="Type to practice..."
+                        placeholder="输入内容..."
                         className="flex-1 bg-gray-100 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button type="submit" disabled={isChatLoading || !chatInput.trim()} className="bg-blue-500 text-white p-2 rounded-xl disabled:opacity-50">

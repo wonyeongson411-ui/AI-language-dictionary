@@ -25,7 +25,7 @@ export function Notebook({
     try {
       setStory({ text: '', isLoading: true });
       const res = await fetchStory(wordsList, nativeLanguage, targetLanguage);
-      setStory({ text: res.story, isLoading: false });
+      setStory({ text: res.text, isLoading: false });
     } catch (e) {
       console.error(e);
       setStory(null);
@@ -43,8 +43,8 @@ export function Notebook({
             <span className="text-3xl">🔥</span>
           </div>
           <div>
-            <h3 className="text-2xl font-black">2 Day Streak!</h3>
-            <p className="text-pink-100 font-medium">Keep it going. Review {Math.max(5, savedWords.length)} words today.</p>
+            <h3 className="text-2xl font-black">连续学习 2 天！</h3>
+            <p className="text-pink-100 font-medium">保持节奏。今天复习 {Math.max(5, savedWords.length)} 个词汇吧。</p>
           </div>
         </div>
         <button 
@@ -52,7 +52,7 @@ export function Notebook({
           disabled={savedWords.length === 0}
           className="bg-white text-pink-600 px-8 py-4 rounded-2xl font-bold hover:bg-pink-50 transition-colors shadow-lg disabled:opacity-50 w-full md:w-auto"
         >
-          Review Now
+          开始复习
         </button>
       </div>
 
@@ -60,9 +60,9 @@ export function Notebook({
         <div>
           <h2 className="text-3xl font-bold flex items-center gap-3 text-gray-900">
             <BookOpen className="w-8 h-8 text-blue-500" />
-            My Notebook
+            我的笔记本
           </h2>
-          <p className="text-gray-500 mt-2 font-medium">{savedWords.length} words saved for review</p>
+          <p className="text-gray-500 mt-2 font-medium">已保存 {savedWords.length} 个词汇</p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
           <button 
@@ -71,7 +71,7 @@ export function Notebook({
             className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-pink-100 text-pink-700 px-6 py-3 rounded-2xl font-bold hover:bg-pink-200 transition-colors disabled:opacity-50"
           >
             {story?.isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Wand2 className="w-5 h-5" />}
-            Make a Story
+            生成记忆故事
           </button>
           <button 
             onClick={onStartStudy}
@@ -79,7 +79,7 @@ export function Notebook({
             className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-600 transition-colors disabled:opacity-50 shadow-md shadow-blue-500/20"
           >
             <Play className="w-5 h-5 fill-current" />
-            Study Mode
+            学习模式
           </button>
         </div>
       </div>
@@ -94,10 +94,10 @@ export function Notebook({
           >
             <div className="bg-gradient-to-br from-pink-50 to-orange-50 border border-pink-100 p-6 md:p-8 rounded-3xl relative">
               <Sparkles className="absolute top-6 right-6 text-pink-300 w-8 h-8" />
-              <h3 className="text-xl font-bold text-pink-900 mb-4">Memory Story</h3>
+              <h3 className="text-xl font-bold text-pink-900 mb-4">AI 记忆故事</h3>
               {story.isLoading ? (
                 <div className="flex items-center gap-3 text-pink-600 font-medium">
-                  <Loader2 className="w-5 h-5 animate-spin" /> Weaving your words into a tale...
+                  <Loader2 className="w-5 h-5 animate-spin" /> 正在为你编织故事...
                 </div>
               ) : (
                 <div className="prose prose-pink max-w-none">
@@ -118,11 +118,6 @@ export function Notebook({
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all group border border-gray-100 flex flex-col"
           >
-            {word.imageUrl && (
-              <div className="h-40 w-full overflow-hidden shrink-0 border-b border-gray-100">
-                <img src={word.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" crossOrigin="anonymous"/>
-              </div>
-            )}
             <div className="p-5 flex flex-col flex-1">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-2xl font-black text-gray-900 leading-tight tracking-tight">{word.wordInTarget}</h3>
@@ -136,7 +131,7 @@ export function Notebook({
                 </span>
                 {word.examples && word.examples.length > 0 && (
                   <span className="inline-block px-2 py-1 bg-blue-50 text-[10px] font-bold text-blue-600 rounded uppercase tracking-wider">
-                    {word.examples.length} Ex
+                    {word.examples.length} 例句
                   </span>
                 )}
               </div>
@@ -145,7 +140,7 @@ export function Notebook({
         ))}
         {savedWords.length === 0 && (
           <div className="col-span-full py-20 text-center text-gray-400 font-medium">
-            No words saved yet. Go search for some cool concepts!
+            笔记本空空如也，快去查查想学的单词吧！
           </div>
         )}
       </div>
